@@ -1,0 +1,18 @@
+{
+  "model_type": "banglabert_benchmark",
+  "checkpoint": "csebuetnlp/banglabert",
+  "max_len": 64,
+  "batch_size": 16,
+  "lr": 2e-05,
+  "epochs": 3,
+  "freeze_base": true,
+  "seed": 42,
+  "labels": [
+    "hate_speech",
+    "sexist",
+    "threat",
+    "bullying",
+    "toxic"
+  ],
+  "is_external_benchmark": true
+}

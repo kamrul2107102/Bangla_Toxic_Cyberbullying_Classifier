@@ -20,7 +20,7 @@ try:
     import torch
     import torch.nn as nn
     from torch.utils.data import Dataset, DataLoader
-    from transformers import AutoTokenizer, AutoModelForSequenceClassification
+    from transformers import AutoTokenizer, AutoModelForSequenceClassification, AutoConfig
     BENCHMARK_DEPS_AVAILABLE = True
 except ImportError:
     BENCHMARK_DEPS_AVAILABLE = False
@@ -188,14 +188,22 @@ class BanglaBERTBenchmarkModel:
             self.model.save_pretrained(save_dir)
             self.tokenizer.save_pretrained(save_dir)
 
-        (save_dir / "config.json").write_text(json.dumps(self.config, indent=2), encoding="utf-8")
+        # Save training metadata to train_config.json without overwriting Hugging Face's config.json
+        (save_dir / "train_config.json").write_text(json.dumps(self.config, indent=2), encoding="utf-8")
         (save_dir / "history.json").write_text(json.dumps(self.training_history, indent=2), encoding="utf-8")
         (save_dir / "thresholds.json").write_text(json.dumps(self.best_thresholds, indent=2), encoding="utf-8")
 
     @classmethod
     def load(cls, save_dir: Path | str) -> "BanglaBERTBenchmarkModel":
         save_dir = Path(save_dir)
-        config = json.loads((save_dir / "config.json").read_text(encoding="utf-8"))
+        cfg_file = save_dir / "train_config.json" if (save_dir / "train_config.json").exists() else save_dir / "config.json"
+        config = {}
+        if cfg_file.exists():
+            try:
+                config = json.loads(cfg_file.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+
         model = cls(
             checkpoint=config.get("checkpoint", MODEL_CHECKPOINT),
             max_len=config.get("max_len", MAX_LEN),
@@ -210,9 +218,19 @@ class BanglaBERTBenchmarkModel:
         if (save_dir / "history.json").exists():
             model.training_history = json.loads((save_dir / "history.json").read_text(encoding="utf-8"))
 
-        if BENCHMARK_DEPS_AVAILABLE and (save_dir / "config.json").exists():
+        if BENCHMARK_DEPS_AVAILABLE:
             model.tokenizer = AutoTokenizer.from_pretrained(save_dir)
-            model.model = AutoModelForSequenceClassification.from_pretrained(save_dir)
+            try:
+                model.model = AutoModelForSequenceClassification.from_pretrained(save_dir)
+            except Exception:
+                # Fallback: if save_dir/config.json has non-HF keys
+                hf_config = AutoConfig.from_pretrained(
+                    model.config.get("checkpoint", MODEL_CHECKPOINT),
+                    num_labels=len(LABELS),
+                    problem_type="multi_label_classification"
+                )
+                model.model = AutoModelForSequenceClassification.from_pretrained(save_dir, config=hf_config)
+
             model.model.to(model.device)
             model.model.eval()
 

@@ -1,0 +1,7 @@
+{
+  "hate_speech": 0.5,
+  "sexist": 0.5,
+  "threat": 0.5,
+  "bullying": 0.5,
+  "toxic": 0.5
+}
