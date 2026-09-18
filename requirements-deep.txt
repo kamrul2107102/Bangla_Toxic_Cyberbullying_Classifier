@@ -1,5 +1,2 @@
 -r requirements-core.txt
 torch>=2.2
-transformers>=4.45
-sentencepiece>=0.2
-accelerate>=0.34

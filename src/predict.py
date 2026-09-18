@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from pathlib import Path
 import joblib
 import numpy as np
@@ -7,14 +8,40 @@ from .preprocessing import preprocess
 
 
 def load_model(model_name: str):
-    model = joblib.load(ARTIFACT_DIR / f"{model_name}.joblib")
-    # A model trained on GPU should still be usable by a CPU-only Streamlit machine.
-    if hasattr(model, "model") and hasattr(model, "device") and model.model is not None:
-        try:
-            model.device = "cpu"
-            model.model.to("cpu")
-        except Exception:
-            pass
+    """
+    Load any classical, neural sequence, or external benchmark model.
+    Supports both single-file joblib and structured artifact directories.
+    """
+    joblib_path = ARTIFACT_DIR / f"{model_name}.joblib"
+    model_dir = ARTIFACT_DIR / model_name
+
+    if joblib_path.exists():
+        model = joblib.load(joblib_path)
+    elif model_dir.is_dir():
+        if model_name == "bilstm":
+            from .models.bilstm import BiLSTMModel
+            model = BiLSTMModel.load(model_dir)
+        elif model_name == "transformer":
+            from .models.transformer import ScratchTransformerModel
+            model = ScratchTransformerModel.load(model_dir)
+        elif model_name == "banglabert":
+            from .models.banglabert import BanglaBERTBenchmarkModel
+            model = BanglaBERTBenchmarkModel.load(model_dir)
+        else:
+            raise FileNotFoundError(f"Unknown model directory format for {model_name}")
+    else:
+        raise FileNotFoundError(f"No trained artifact found for model: '{model_name}' in {ARTIFACT_DIR}")
+
+    # Fallback to CPU for PyTorch models trained on GPU
+    for attr in ["model", "network"]:
+        net = getattr(model, attr, None)
+        if net is not None and hasattr(net, "to"):
+            try:
+                model.device = "cpu"
+                net.to("cpu")
+            except Exception:
+                pass
+
     return model
 
 

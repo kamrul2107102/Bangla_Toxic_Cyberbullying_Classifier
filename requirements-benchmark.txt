@@ -1,0 +1,4 @@
+-r requirements-deep.txt
+transformers>=4.45
+sentencepiece>=0.2
+accelerate>=0.34

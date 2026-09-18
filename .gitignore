@@ -6,8 +6,9 @@ venv/
 .DS_Store
 artifacts/*.joblib
 artifacts/*.pt
-artifacts/*.json
+artifacts/*_metrics.json
 artifacts/*.npz
+!artifacts/splits.json
 data/raw/*
 data/processed/*
 !data/raw/.gitkeep
