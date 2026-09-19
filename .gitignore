@@ -13,6 +13,9 @@ data/raw/*
 data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+!data/processed/merged_dataset.csv
+!data/processed/external_banglatoco.csv
+!data/processed/sample_dataset.csv
 *.safetensors
 *.pt
 *.bin

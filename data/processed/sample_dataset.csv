@@ -1,0 +1,5 @@
+text,source,context_text,hate_speech,sexist,threat,bullying,toxic,hate_speech_mask,sexist_mask,threat_mask,bullying_mask,toxic_mask
+তুই খুব বাজে মানুষ,sample,,0,0,0,1,1,1,1,1,1,1
+তোমাকে মেরে ফেলব,sample,,0,0,1,0,1,1,1,1,1,1
+তুমি আজ খুব ভালো করেছো,sample,,0,0,0,0,0,1,1,1,1,1
+ওই মেয়েটা কিছুই পারে না,sample,,0,1,0,1,1,1,1,1,1,1
