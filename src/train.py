@@ -113,8 +113,11 @@ def run(model_name: str, df: pd.DataFrame, epochs: int | None = None):
         model.save(model_dir)
 
     joblib_path = ARTIFACT_DIR / f"{model_name}.joblib"
-    joblib.dump(model, joblib_path)
-    model_size_mb = joblib_path.stat().st_size / (1024 * 1024)
+    try:
+        joblib.dump(model, joblib_path)
+        model_size_mb = joblib_path.stat().st_size / (1024 * 1024)
+    except Exception:
+        model_size_mb = 0.0
 
     param_count = count_parameters(model)
 
