@@ -4,7 +4,7 @@ A comprehensive, academic NLP multi-label classification system for Bengali and 
 
 ---
 
-## 🎯 1. Project Objective & Academic Boundary
+## 1. Project Objective & Academic Boundary
 
 ### Academic Constraint & Identity
 This project is built around **fundamental Natural Language Processing algorithms implemented from scratch** (using pure Python, NumPy, and PyTorch without high-level automated AutoML or black-box pretrained classifiers).
@@ -22,7 +22,7 @@ This project is built around **fundamental Natural Language Processing algorithm
 
 ---
 
-## 🏷️ 2. Canonical Labels
+## 2. Canonical Labels
 
 The system performs multi-label prediction across five canonical toxicity targets:
 1. `toxic`: General harmful, hostile, or abusive comments.
@@ -35,7 +35,7 @@ The system performs multi-label prediction across five canonical toxicity target
 
 ---
 
-## 🧹 3. Data Preprocessing & Dialect Normalization
+## 3. Data Preprocessing & Dialect Normalization
 
 The preprocessing pipeline in `src/preprocessing.py` tackles the unique challenges of Bengali and Banglish:
 1. **Unicode NFKC Normalization**: Resolves decomposed characters, nuktas (`য়` vs `য`+`়`), and zero-width non-joiners (`ZWNJ` / `\u200c`, `ZWJ` / `\u200d`).
@@ -46,7 +46,7 @@ The preprocessing pipeline in `src/preprocessing.py` tackles the unique challeng
 
 ---
 
-## 🔒 4. Data Leakage Protection & Split Integrity
+## 4. Data Leakage Protection & Split Integrity
 
 To ensure completely fair and scientifically valid evaluation:
 1. **Frozen Split Partitions**: Train (80%), Validation (10%), and Test (10%) row indices are generated deterministically with fixed seed (`42`) and saved to `artifacts/splits.json`.
@@ -55,7 +55,7 @@ To ensure completely fair and scientifically valid evaluation:
 
 ---
 
-## 📁 5. Directory Structure
+## 5. Directory Structure
 
 ```text
 Bangla_Toxic_Cyberbullying_Classifier/
@@ -111,7 +111,7 @@ Bangla_Toxic_Cyberbullying_Classifier/
 
 ---
 
-## 💻 6. Installation & Execution
+## 6. Installation & Execution
 
 ### Local Environment Setup
 ```bash
@@ -165,7 +165,7 @@ Visit `http://localhost:8501` to test comments interactively across any model.
 
 ---
 
-## ☁️ 7. Google Colab GPU Execution
+## 7. Google Colab GPU Execution
 
 For resource-intensive training on free Colab T4 GPUs, use the ready-to-run notebooks located in `notebooks/`:
 1. `notebooks/train_bilstm_colab.ipynb`: Trains BiLSTM with mixed precision and zips `artifacts_bilstm.zip`.
@@ -174,7 +174,7 @@ For resource-intensive training on free Colab T4 GPUs, use the ready-to-run note
 
 ---
 
-## 📊 8. Measured Performance Summary
+## 8. Measured Performance Summary
 
 Evaluated on the exact same 1,991 held-out test comments:
 
@@ -189,7 +189,7 @@ Evaluated on the exact same 1,991 held-out test comments:
 
 ---
 
-## ⚖️ 9. Limitations & Ethical Considerations
+## 9. Limitations & Ethical Considerations
 - **Dataset Annotation Disparities**: Merged multi-source datasets contain varying subjective thresholds for toxicity vs. bullying. Masking (`_mask`) is employed so missing labels are not falsely penalized.
 - **Dialect Diversity**: While colloquial Dhakaiya and standard Bengali are normalized, rare regional dialects (e.g. Chatgaiya, Sylheti) may exhibit higher out-of-vocabulary rates.
 - **Context Truncation**: Comments devoid of external conversational context (e.g. video replies) may occasionally be ambiguous.

@@ -165,7 +165,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-header">🛡️ Bangla Toxic Comment & Cyberbullying Classifier</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">Bangla Toxic Comment & Cyberbullying Classifier</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-caption">Multi-Label Toxicity, Threat & Cyberbullying Detection for Bengali and Banglish — Multi-Model Benchmark Arena</div>', unsafe_allow_html=True)
 
 # All supported models definitions
@@ -234,14 +234,14 @@ def load_thresholds(m_name: str):
             pass
     return th
 
-MODE_COMPARE = "⚔️ Unified Multi-Model Comparison (Compare All Models)"
-MODE_SINGLE = "🔬 Single Model Deep-Dive"
+MODE_COMPARE = "Unified Multi-Model Comparison (Compare All Models)"
+MODE_SINGLE = "Single Model Deep-Dive"
 
 single_model_name = list(available_models.keys())[0] if available_models else "naive_bayes"
 active_single_th = load_thresholds(single_model_name)
 
 with st.sidebar:
-    st.header("⚙️ Dashboard Mode")
+    st.header("Dashboard")
     view_mode = st.radio(
         "Select display view:",
         [MODE_COMPARE, MODE_SINGLE],
@@ -269,9 +269,9 @@ with st.sidebar:
         single_th_dict = load_thresholds(single_model_name)
         th_mode = st.radio(
             "Threshold Mode:",
-            ["🎯 Optimal Validation Thresholds (Recommended)", "🎚️ Custom Threshold Slider"]
+            ["Optimal Validation Thresholds (Recommended)", "Custom Threshold Slider"]
         )
-        if th_mode == "🎚️ Custom Threshold Slider":
+        if th_mode == "Custom Threshold Slider":
             c_th = float(st.slider("Detection Threshold:", 0.05, 0.95, 0.50, 0.05))
             active_single_th = {lbl: c_th for lbl in LABELS}
         else:
@@ -295,28 +295,28 @@ with st.sidebar:
             except Exception:
                 pass
     else:
-        st.subheader("🎯 Active Model Fleet (Ready to Compare)")
+        st.subheader("Active Model Fleet (Ready to Compare)")
         st.caption(f"Currently {len(available_models)} trained models available:")
         for mid, info in available_models.items():
             st.markdown(f"• **{info['name']}**  \n  *{info['method']}*")
             
         st.markdown("---")
-        st.info("ℹ️ **Comparison Arena:** Enter a comment to evaluate all trained models simultaneously, side-by-side with consensus metrics.")
+        st.info("**Comparison Arena:** Enter a comment to evaluate all trained models simultaneously, side-by-side with consensus metrics.")
 
     st.markdown("---")
     st.caption("NLP Multi-Label Toxic Classifier • Classical to Neural")
 
 # Example Sentences for Quick Testing
 SAMPLE_SENTENCES = {
-    "✨ Select a preset sample...": "",
-    "🔴 [Threat] তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব": "তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব",
-    "🟢 [Neutral Question] এই বইটা কোথায় কিনতে পাওয়া যাবে?": "এই বইটা কোথায় কিনতে পাওয়া যাবে?",
-    "🟢 [Positive / Neutral] আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।": "আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।",
-    "🟢 [Praise] ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!": "ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!",
-    "🔴 [Bullying / Abusive] তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু": "তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু",
-    "🔴 [Hate Speech] এই ফকিন্নি মালাউনদের দেশ থেকে লাথি মেরে তাড়ানো উচিত": "এই ফকিন্নি মালাউনদের দেশ থেকে লাথি মেরে তাড়ানো উচিত",
-    "🟡 [Banglish Positive] video ta onek sundor hoyeche bro, shuvokamona roilo": "video ta onek sundor hoyeche bro, shuvokamona roilo",
-    "🔴 [Banglish Toxic] tui ekta baje faltu manush, tore dekhle shobai ghenna kore": "tui ekta baje faltu manush, tore dekhle shobai ghenna kore"
+    "Select a preset sample...": "",
+    "[Threat] তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব": "তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব",
+    "[Neutral Question] এই বইটা কোথায় কিনতে পাওয়া যাবে?": "এই বইটা কোথায় কিনতে পাওয়া যাবে?",
+    "[Positive / Neutral] আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।": "আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।",
+    "[Praise] ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!": "ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!",
+    "[Bullying / Abusive] তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু": "তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু",
+    "[Hate Speech] এই ফ** দেশ থেকে লাথি মেরে তাড়ানো উচিত": "এই ফকিন্নিদের দেশ থেকে লাথি মেরে তাড়ানো উচিত",
+    "[Banglish Positive] video ta onek sundor hoyeche bro, shuvokamona roilo": "video ta onek sundor hoyeche bro, shuvokamona roilo",
+    "[Banglish Toxic] tui ekta baje faltu manush, tore dekhle shobai ghenna kore": "tui ekta baje faltu manush, tore dekhle shobai ghenna kore"
 }
 
 if "user_comment" not in st.session_state:
@@ -327,7 +327,7 @@ def on_sample_change():
     if chosen and SAMPLE_SENTENCES.get(chosen):
         st.session_state.user_comment = SAMPLE_SENTENCES[chosen]
 
-st.markdown("##### 🧪 Sample Test Sentences:")
+st.markdown("##### Sample Test Sentences:")
 st.selectbox(
     "Choose a preset test sample:",
     options=list(SAMPLE_SENTENCES.keys()),
@@ -347,11 +347,11 @@ text = st.text_area(
 
 col_btn, _ = st.columns([1, 3])
 with col_btn:
-    classify_clicked = st.button("🔍 Classify & Compare", type="primary", width="stretch")
+    classify_clicked = st.button("Classify & Compare", type="primary", width="stretch")
 
 label_display_map = {
     "hate_speech": "Hate Speech (ঘৃণামূলক বক্তব্য)",
-    "sexist": "Gender Discrimination (লিঙ্গবৈষম্য)",
+    "sexist": "Gender Discrimination (লিঙ্গ বৈষম্য)",
     "threat": "Threat / Violence (হুমকি)",
     "bullying": "Bullying (সাইবারবুলিং)",
     "toxic": "Toxic / Abusive (ক্ষতিকর/অশালীন)"
@@ -392,7 +392,7 @@ def run_single_inference(m_name: str, comment_text: str, th_dict: dict):
 
 if classify_clicked or text.strip():
     if not text.strip():
-        st.warning("⚠️ Please enter a text or select a preset sample.")
+        st.warning("Please enter a text or select a preset sample.")
     else:
         st.markdown("---")
         
@@ -418,16 +418,16 @@ if classify_clicked or text.strip():
                 neutral_votes = total_evaluated - toxic_votes
                 
                 # --- Consensus Banner ---
-                st.markdown("### 🏆 Model Consensus & Agreement")
+                st.markdown("### Model Consensus & Agreement")
                 if toxic_votes == total_evaluated:
-                    st.error(f"🚨 **Unanimous Toxic Agreement ({total_evaluated}/{total_evaluated} Models Agree):** The input is classified as harmful/toxic.")
+                    st.error(f"**Unanimous Toxic Agreement ({total_evaluated}/{total_evaluated} Models Agree):** The input is classified as harmful/toxic.")
                 elif neutral_votes == total_evaluated:
-                    st.success(f"✅ **Unanimous Clean Agreement ({total_evaluated}/{total_evaluated} Models Agree):** The input is classified as safe and neutral.")
+                    st.success(f"**Unanimous Clean Agreement ({total_evaluated}/{total_evaluated} Models Agree):** The input is classified as safe and neutral.")
                 else:
-                    st.warning(f"⚖️ **Split Verdict ({toxic_votes}/{total_evaluated} Models Flagged Toxic):** Differing classification thresholds among models.")
+                    st.warning(f"**Split Verdict ({toxic_votes}/{total_evaluated} Models Flagged Toxic):** Differing classification thresholds among models.")
                 
                 # --- Side-by-Side Model Cards with EQUAL HEIGHTS ---
-                st.markdown("### 📊 Side-by-Side Model Verdicts")
+                st.markdown("### Side-by-Side Model Verdicts")
                 model_cols = st.columns(total_evaluated)
                 for idx, (mid, res) in enumerate(results.items()):
                     with model_cols[idx]:
@@ -442,10 +442,10 @@ if classify_clicked or text.strip():
                         # Verdict class and text
                         if res["is_neutral"]:
                             verdict_class = "card-verdict-safe"
-                            verdict_html = "✅ Safe (Clean / Neutral)"
+                            verdict_html = "Safe (Clean / Neutral)"
                         else:
                             verdict_class = "card-verdict-toxic"
-                            verdict_html = "🚨 Toxic (Harmful Content)"
+                            verdict_html = "Toxic (Harmful Content)"
                             
                         # Build top 3 probability bars
                         top_sorted = sorted(res["probs"].items(), key=lambda x: x[1], reverse=True)[:3]
@@ -477,7 +477,7 @@ if classify_clicked or text.strip():
                             f'<div class="card-labels-title">Detected Labels:</div>'
                             f'<div class="card-labels-badges">{badges_html}</div>'
                             f'</div>'
-                            f'<div class="card-latency-section">⏱️ Inference Latency: <b>{res["latency_ms"]:.2f} ms</b></div>'
+                            f'<div class="card-latency-section">Inference Latency: <b>{res["latency_ms"]:.2f} ms</b></div>'
                             f'<div class="card-probs-section">'
                             f'<div class="card-probs-title">Top Predicted Confidences:</div>'
                             f'{probs_html}'
@@ -487,7 +487,7 @@ if classify_clicked or text.strip():
                         st.markdown(card_html, unsafe_allow_html=True)
                 
                 # --- Unified Probability Matrix Table ---
-                st.markdown("### 📈 Unified Multi-Model Probability Matrix")
+                st.markdown("### Unified Multi-Model Probability Matrix")
                 st.caption("Side-by-side comparison of predicted confidence probabilities (%) for all 5 canonical toxicity labels:")
                 
                 table_rows = []
@@ -502,12 +502,12 @@ if classify_clicked or text.strip():
                         is_flagged = prob >= th
                         if is_flagged:
                             any_detected = True
-                        flag_icon = "🚨 " if is_flagged else ""
+                        flag_icon = "" if is_flagged else ""
                         row_data[ALL_MODELS[mid]["name"].split("(")[0].strip()] = f"{flag_icon}{prob*100:.1f}%"
                     
                     avg_prob = np.mean(model_probs) if model_probs else 0.0
                     row_data["Ensemble Avg (%)"] = f"{avg_prob*100:.1f}%"
-                    row_data["Consensus Status"] = "🚨 DETECTED" if any_detected else "✅ Clean"
+                    row_data["Consensus Status"] = "DETECTED" if any_detected else "Clean"
                     table_rows.append(row_data)
                     
                 df_matrix = pd.DataFrame(table_rows)
@@ -519,10 +519,10 @@ if classify_clicked or text.strip():
         else:
             try:
                 single_res = run_single_inference(single_model_name, text, active_single_th)
-                st.markdown(f"### 🔬 Detailed Analysis: {ALL_MODELS[single_model_name]['name']}")
+                st.markdown(f"### Detailed Analysis: {ALL_MODELS[single_model_name]['name']}")
                 
                 if single_res["is_neutral"]:
-                    st.success("✅ **Clean & Safe (Neutral)** — No toxicity thresholds exceeded.")
+                    st.success("**Clean & Safe (Neutral)** — No toxicity thresholds exceeded.")
                 else:
                     detected_badges = " ".join([f"`{label_badge_map.get(lbl, lbl.upper())}`" for lbl in single_res["detected"]])
                     st.error(f"🚨 **Harmful Content Detected:** {detected_badges}")
@@ -538,7 +538,7 @@ if classify_clicked or text.strip():
                         "Probability (0-1)": round(prob, 4),
                         "Cutoff Threshold": f"{th*100:.0f}%",
                         "Confidence Meter": prob,
-                        "Status": "🚨 DETECTED" if is_det else "✅ Clean"
+                        "Status": "DETECTED" if is_det else "Clean"
                     })
                 st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
             except Exception as ex:
@@ -547,7 +547,7 @@ if classify_clicked or text.strip():
         # =========================================================================
         # 3. COMMON PREPROCESSED TOKENS INSPECTION
         # =========================================================================
-        with st.expander("🔎 Inspected Preprocessed Tokens"):
+        with st.expander("Inspected Preprocessed Tokens"):
             st.caption("Tokens after Unicode NFKC normalization, regex cleaning, and dialect mapping:")
             tokens = preprocess(text)
             if tokens:
