@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import time
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -15,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom styling for clean, professional aesthetics
+# Custom styling for clean, professional aesthetics and EQUAL HEIGHT CARDS
 st.markdown("""
 <style>
     .main-header {
@@ -38,94 +39,284 @@ st.markdown("""
         font-weight: 500;
         margin-bottom: 1rem;
     }
+
+    /* EQUAL HEIGHT UNIFIED MODEL CARDS */
+    .unified-model-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 1.2rem;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 450px;
+        box-sizing: border-box;
+        margin-bottom: 1rem;
+    }
+    .card-header-section {
+        min-height: 72px;
+        margin-bottom: 0.6rem;
+    }
+    .card-title {
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: #0F172A;
+        line-height: 1.35;
+        margin-bottom: 0.35rem;
+    }
+    .card-badge {
+        display: inline-block;
+        font-size: 0.74rem;
+        background: #F1F5F9;
+        color: #475569;
+        padding: 2px 7px;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+    .card-verdict-section {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+    }
+    .card-verdict-toxic {
+        background-color: #FEE2E2;
+        color: #991B1B;
+        border: 1px solid #FCA5A5;
+    }
+    .card-verdict-safe {
+        background-color: #DCFCE7;
+        color: #166534;
+        border: 1px solid #86EFAC;
+    }
+    .card-labels-section {
+        min-height: 68px;
+        margin-bottom: 0.75rem;
+    }
+    .card-labels-title {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #64748B;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .card-labels-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: flex-start;
+    }
+    .label-pill {
+        background: #EFF6FF;
+        color: #1D4ED8;
+        border: 1px solid #BFDBFE;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+    .label-pill-none {
+        color: #94A3B8;
+        font-style: italic;
+        font-size: 0.8rem;
+    }
+    .card-latency-section {
+        font-size: 0.82rem;
+        color: #64748B;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px solid #F1F5F9;
+    }
+    .card-probs-section {
+        flex-grow: 1;
+    }
+    .card-probs-title {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #64748B;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .prob-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+        font-size: 0.83rem;
+    }
+    .prob-bar-container {
+        width: 50%;
+        background: #F1F5F9;
+        border-radius: 4px;
+        height: 7px;
+        overflow: hidden;
+    }
+    .prob-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-header">Bangla Toxic Comment & Cyberbullying Classifier</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-caption">বাংলা ও বাংলিশ (Banglish) ক্ষতিকর মন্তব্য, হুমকি ও সাইবারবুলিং শনাক্তকরণ সিস্টেম</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">🛡️ Bangla Toxic Comment & Cyberbullying Classifier</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-caption">Multi-Label Toxicity, Threat & Cyberbullying Detection for Bengali and Banglish — Multi-Model Benchmark Arena</div>', unsafe_allow_html=True)
 
-# Define all supported models with friendly labels
+# All supported models definitions
 ALL_MODELS = {
-    "naive_bayes": "Naive Bayes (From Scratch)",
-    "tfidf_lr": "TF-IDF + Logistic Regression (From Scratch)",
-    "word2vec_lr": "Word2Vec + Logistic Regression (From Scratch)",
-    "bilstm": "BiLSTM (From Scratch - Neural)",
-    "transformer": "Transformer Encoder (From Scratch - Neural)",
-    "banglabert": "BanglaBERT (External Pretrained Benchmark)"
+    "naive_bayes": {
+        "name": "Naive Bayes",
+        "method": "Closed-form Bayes + Laplace Smoothing",
+        "type": "Classical Generative"
+    },
+    "tfidf_lr": {
+        "name": "TF-IDF + Logistic Regression",
+        "method": "Sparse TF-IDF n-grams + Sigmoid LogReg",
+        "type": "Classical Discriminative"
+    },
+    "word2vec_lr": {
+        "name": "Word2Vec + Logistic Regression",
+        "method": "Skip-Gram SGNS + Mean Embedding Pooling",
+        "type": "Dense Embedding + LogReg"
+    },
+    "bilstm": {
+        "name": "BiLSTM",
+        "method": "PyTorch Stacked BiLSTM + Trainable Embeddings",
+        "type": "Recurrent Sequence Model"
+    },
+    "transformer": {
+        "name": "Transformer Encoder",
+        "method": "PyTorch Self-Attention + Sinusoidal Positional Encoding",
+        "type": "Transformer Sequence Model"
+    },
+    "banglabert": {
+        "name": "BanglaBERT",
+        "method": "Pretrained ELECTRA Discriminator (CSE BUET)",
+        "type": "Pretrained Foundation Model"
+    }
 }
 
-with st.sidebar:
-    st.header("মডেল সেটিংস (Settings)")
-    
-    selected_label = st.selectbox(
-        "মডেল নির্বাচন করুন (Choose model):",
-        options=list(ALL_MODELS.values()),
-        index=0
-    )
-    # Reverse lookup for model ID
-    model_name = [k for k, v in ALL_MODELS.items() if v == selected_label][0]
-    
-    # Notice for BanglaBERT
-    if model_name == "banglabert":
-        st.markdown(
-            '<div class="benchmark-notice"><b>BanglaBERT</b> is an external pretrained benchmark (ELECTRA) and is not part of the from-scratch model pipeline.</div>',
-            unsafe_allow_html=True
-        )
+# Cache model loader in memory for instant multi-model inference
+@st.cache_resource
+def get_cached_model(m_name: str):
+    return load_model(m_name)
 
-    metrics_path = ARTIFACT_DIR / f"{model_name}_metrics.json"
-    report = {}
-    best_thresholds = {lbl: 0.5 for lbl in LABELS}
+# Helper to check which models are trained and available on disk
+def get_available_models():
+    available = {}
+    for m_id, m_info in ALL_MODELS.items():
+        joblib_f = ARTIFACT_DIR / f"{m_id}.joblib"
+        dir_f = ARTIFACT_DIR / m_id
+        if joblib_f.exists() or (dir_f.is_dir() and (dir_f / "model.pt").exists()):
+            available[m_id] = m_info
+    return available
+
+available_models = get_available_models()
+
+def load_thresholds(m_name: str):
+    metrics_path = ARTIFACT_DIR / f"{m_name}_metrics.json"
+    th = {lbl: 0.5 for lbl in LABELS}
     if metrics_path.exists():
         try:
-            report = json.loads(metrics_path.read_text(encoding="utf-8"))
-            raw_th = report.get("best_thresholds", {})
-            if isinstance(raw_th, dict):
+            data = json.loads(metrics_path.read_text(encoding="utf-8"))
+            raw = data.get("best_thresholds", {})
+            if isinstance(raw, dict):
                 for lbl in LABELS:
-                    if lbl in raw_th:
-                        best_thresholds[lbl] = float(raw_th[lbl])
+                    if lbl in raw:
+                        th[lbl] = float(raw[lbl])
         except Exception:
             pass
+    return th
 
-    threshold_mode = st.radio(
-        "থ্রেশহোল্ড মোড (Threshold Mode):",
-        ["মডেলের অপ্টিমাইজড থ্রেশহোল্ড (Recommended)", "কাস্টম থ্রেশহোল্ড স্লাইডার"]
+MODE_COMPARE = "⚔️ Unified Multi-Model Comparison (Compare All Models)"
+MODE_SINGLE = "🔬 Single Model Deep-Dive"
+
+single_model_name = list(available_models.keys())[0] if available_models else "naive_bayes"
+active_single_th = load_thresholds(single_model_name)
+
+with st.sidebar:
+    st.header("⚙️ Dashboard Mode")
+    view_mode = st.radio(
+        "Select display view:",
+        [MODE_COMPARE, MODE_SINGLE],
+        index=0
     )
     
-    if threshold_mode == "কাস্টম থ্রেশহোল্ড স্লাইডার":
-        custom_th = float(st.slider("লেবেল থ্রেশহোল্ড (Detection Threshold):", 0.05, 0.95, 0.50, 0.05))
-        active_thresholds = {lbl: custom_th for lbl in LABELS}
-    else:
-        active_thresholds = best_thresholds
-
     st.markdown("---")
-    st.subheader("মডেল পারফরম্যান্স")
-    if report:
-        col_m1, col_m2 = st.columns(2)
-        with col_m1:
-            st.metric("Test Micro-F1", f"{report.get('test', {}).get('micro_f1', 0.0):.3f}")
-        with col_m2:
-            st.metric("Test Macro-F1", f"{report.get('test', {}).get('macro_f1', 0.0):.3f}")
+    
+    if view_mode == MODE_SINGLE:
+        st.subheader("Model Settings")
+        model_options = {k: v["name"] for k, v in ALL_MODELS.items()}
+        selected_label = st.selectbox(
+            "Select active model:",
+            options=list(model_options.values()),
+            index=0
+        )
+        single_model_name = [k for k, v in model_options.items() if v == selected_label][0]
         
-        with st.expander("বর্তমান সক্রিয় থ্রেশহোল্ড"):
-            for lbl, th in active_thresholds.items():
-                st.write(f"• **{lbl}**: `{th:.2f}` ({th*100:.0f}%)")
+        if single_model_name == "banglabert":
+            st.markdown(
+                '<div class="benchmark-notice"><b>BanglaBERT</b> is an external pretrained benchmark (ELECTRA) and is not part of the from-scratch model pipeline.</div>',
+                unsafe_allow_html=True
+            )
+            
+        single_th_dict = load_thresholds(single_model_name)
+        th_mode = st.radio(
+            "Threshold Mode:",
+            ["🎯 Optimal Validation Thresholds (Recommended)", "🎚️ Custom Threshold Slider"]
+        )
+        if th_mode == "🎚️ Custom Threshold Slider":
+            c_th = float(st.slider("Detection Threshold:", 0.05, 0.95, 0.50, 0.05))
+            active_single_th = {lbl: c_th for lbl in LABELS}
+        else:
+            active_single_th = single_th_dict
+            
+        st.markdown("---")
+        st.subheader("Model Performance")
+        metrics_path = ARTIFACT_DIR / f"{single_model_name}_metrics.json"
+        if metrics_path.exists():
+            try:
+                rep = json.loads(metrics_path.read_text(encoding="utf-8"))
+                col_m1, col_m2 = st.columns(2)
+                with col_m1:
+                    st.metric("Test Micro-F1", f"{rep.get('test', {}).get('micro_f1', 0.0):.3f}")
+                with col_m2:
+                    st.metric("Test Macro-F1", f"{rep.get('test', {}).get('macro_f1', 0.0):.3f}")
+                with st.expander("Active Thresholds"):
+                    for lbl, th in active_single_th.items():
+                        disp_lbl = "Gender Discrimination" if lbl == "sexist" else lbl.replace("_", " ").title()
+                        st.write(f"• **{disp_lbl}**: `{th:.2f}` ({th*100:.0f}%)")
+            except Exception:
+                pass
     else:
-        st.info(f"{model_name} মডেলের প্রি-ট্রেইন্ড মেট্রিক্স পাওয়া যায়নি।")
+        st.subheader("🎯 Active Model Fleet (Ready to Compare)")
+        st.caption(f"Currently {len(available_models)} trained models available:")
+        for mid, info in available_models.items():
+            st.markdown(f"• **{info['name']}**  \n  *{info['method']}*")
+            
+        st.markdown("---")
+        st.info("ℹ️ **Comparison Arena:** Enter a comment to evaluate all trained models simultaneously, side-by-side with consensus metrics.")
 
     st.markdown("---")
-    st.caption("NLP Multi-Label Toxic Classifier • From-Scratch Classical to Neural")
+    st.caption("NLP Multi-Label Toxic Classifier • Classical to Neural")
 
 # Example Sentences for Quick Testing
 SAMPLE_SENTENCES = {
-    "পছন্দ করুন (Select an example)": "",
-    "হুমকি/Threat] তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব": "তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব",
-    "[সাধারণ প্রশ্ন] এই বইটা কোথায় কিনতে পাওয়া যাবে?": "এই বইটা কোথায় কিনতে পাওয়া যাবে?",
-    "[পজিটিভ/নিউট্রাল] আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।": "আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।",
-    "[প্রশংসা] ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!": "ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!",
-    "[বুলিং/অশালীন] তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু": "তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু",
-    "[বিদ্বেষ/Hate Speech] এই ফকিন্নি মালাউনদের দেশ থেকে লাথি মেরে তাড়ানো উচিত": "এই ফকিন্নি মালাউনদের দেশ থেকে লাথি মেরে তাড়ানো উচিত",
-    "[বাংলিশ পজিটিভ] video ta onek sundor hoyeche bro, shuvokamona roilo": "video ta onek sundor hoyeche bro, shuvokamona roilo",
-    "[বাংলিশ ক্ষতিকর] tui ekta baje faltu manush, tore dekhle shobai ghenna kore": "tui ekta baje faltu manush, tore dekhle shobai ghenna kore"
+    "✨ Select a preset sample...": "",
+    "🔴 [Threat] তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব": "তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব",
+    "🟢 [Neutral Question] এই বইটা কোথায় কিনতে পাওয়া যাবে?": "এই বইটা কোথায় কিনতে পাওয়া যাবে?",
+    "🟢 [Positive / Neutral] আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।": "আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।",
+    "🟢 [Praise] ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!": "ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!",
+    "🔴 [Bullying / Abusive] তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু": "তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু",
+    "🔴 [Hate Speech] এই ফকিন্নি মালাউনদের দেশ থেকে লাথি মেরে তাড়ানো উচিত": "এই ফকিন্নি মালাউনদের দেশ থেকে লাথি মেরে তাড়ানো উচিত",
+    "🟡 [Banglish Positive] video ta onek sundor hoyeche bro, shuvokamona roilo": "video ta onek sundor hoyeche bro, shuvokamona roilo",
+    "🔴 [Banglish Toxic] tui ekta baje faltu manush, tore dekhle shobai ghenna kore": "tui ekta baje faltu manush, tore dekhle shobai ghenna kore"
 }
 
 if "user_comment" not in st.session_state:
@@ -136,9 +327,9 @@ def on_sample_change():
     if chosen and SAMPLE_SENTENCES.get(chosen):
         st.session_state.user_comment = SAMPLE_SENTENCES[chosen]
 
-st.markdown("#####টেস্ট করার জন্য নমুনা বাক্য (Sample Test Sentences):")
+st.markdown("##### 🧪 Sample Test Sentences:")
 st.selectbox(
-    "ক্লিক করে উদাহরণ সিলেক্ট করুন:",
+    "Choose a preset test sample:",
     options=list(SAMPLE_SENTENCES.keys()),
     index=0,
     key="sample_selector",
@@ -148,158 +339,220 @@ st.selectbox(
 
 # Text area
 text = st.text_area(
-    "বাংলা / Banglish comment লিখুন বা উপরের উদাহরণ থেকে বেছে নিন:",
+    "Enter Bengali or Banglish comment to analyze:",
     key="user_comment",
-    height=120,
-    placeholder="এখানে আপনার টেক্সট লিখুন..."
+    height=110,
+    placeholder="Type or paste your text here..."
 )
 
-col_btn, col_info = st.columns([1, 3])
+col_btn, _ = st.columns([1, 3])
 with col_btn:
-    classify_clicked = st.button("Classify Text", type="primary", width="stretch")
+    classify_clicked = st.button("🔍 Classify & Compare", type="primary", width="stretch")
 
-def classify_comment(model, comment_text: str, thresholds_dict: dict):
-    probs = np.asarray(model.predict_proba([comment_text]))[0]
-    detected_labels = []
+label_display_map = {
+    "hate_speech": "Hate Speech (ঘৃণামূলক বক্তব্য)",
+    "sexist": "Gender Discrimination (লিঙ্গবৈষম্য)",
+    "threat": "Threat / Violence (হুমকি)",
+    "bullying": "Bullying (সাইবারবুলিং)",
+    "toxic": "Toxic / Abusive (ক্ষতিকর/অশালীন)"
+}
+
+label_badge_map = {
+    "hate_speech": "HATE SPEECH",
+    "sexist": "GENDER DISCRIMINATION",
+    "threat": "THREAT",
+    "bullying": "BULLYING",
+    "toxic": "TOXIC"
+}
+
+label_short_map = {
+    "hate_speech": "Hate Speech",
+    "sexist": "Gender Discrimination",
+    "threat": "Threat",
+    "bullying": "Bullying",
+    "toxic": "Toxic"
+}
+
+def run_single_inference(m_name: str, comment_text: str, th_dict: dict):
+    m = get_cached_model(m_name)
+    start_t = time.perf_counter()
+    probs = np.asarray(m.predict_proba([comment_text]))[0]
+    latency_ms = (time.perf_counter() - start_t) * 1000.0
+    detected = []
     for i, lbl in enumerate(LABELS):
-        cutoff = float(thresholds_dict.get(lbl, 0.5))
-        if float(probs[i]) >= cutoff:
-            detected_labels.append(lbl)
+        if probs[i] >= float(th_dict.get(lbl, 0.5)):
+            detected.append(lbl)
     return {
-        "labels": detected_labels,
-        "probabilities": {LABELS[i]: float(probs[i]) for i in range(len(LABELS))},
-        "neutral": len(detected_labels) == 0,
-        "tokens": preprocess(comment_text),
+        "model_name": m_name,
+        "probs": {LABELS[i]: float(probs[i]) for i in range(len(LABELS))},
+        "detected": detected,
+        "is_neutral": len(detected) == 0,
+        "latency_ms": latency_ms
     }
 
 if classify_clicked or text.strip():
     if not text.strip():
-        st.warning("অনুগ্রহ করে কোনো টেক্সট বা কমেন্ট লিখুন।")
+        st.warning("⚠️ Please enter a text or select a preset sample.")
     else:
-        try:
-            model = load_model(model_name)
-        except Exception as e:
-            st.error(f"নির্বাচিত মডেল '{model_name}' লোড করতে সমস্যা হয়েছে: {e}")
-            nb_name = "notebooks/train_banglabert_benchmark_colab.ipynb" if model_name == "banglabert" else f"notebooks/train_{model_name}_colab.ipynb"
-            st.info(
-                f"আপনি এটি লোকাল টার্মিনাল বা Google Colab-এ ট্রেন করতে পারেন:\n\n"
-                f"```bash\npython -m src.train --model {model_name}\n```\n"
-                f"অথবা Google Colab নোটবুক চালান: `{nb_name}`"
-            )
-            model = None
-
-        if model is not None:
-            result = classify_comment(model, text, active_thresholds)
-            
-            st.markdown("---")
-            
-            # Overall Verdict Banner
-            if result["neutral"]:
-                st.success("**নিরাপদ ও নিউট্রাল মন্তব্য (Neutral / Safe)** — কোনো ক্ষতিকর লেবেল থ্রেশহোল্ড অতিক্রম করেনি।")
+        st.markdown("---")
+        
+        # =========================================================================
+        # 1. UNIFIED MULTI-MODEL COMPARISON VIEW
+        # =========================================================================
+        if view_mode == MODE_COMPARE:
+            if not available_models:
+                st.error("No trained model artifacts found on disk.")
             else:
-                detected_badges = " ".join([f"`{lbl.upper()}`" for lbl in result["labels"]])
-                st.error(f" **ক্ষতিকর উপাদান শনাক্ত হয়েছে (Toxic Detected):** {detected_badges}")
-            
-            st.markdown("### প্রতিটি লেবেলের সম্ভাবনা (Label Probabilities & Percentages)")
-            
-            rows = []
-            label_bn_map = {
-                "hate_speech": "ঘৃণামূলক বক্তব্য (Hate Speech)",
-                "sexist": "লিঙ্গবৈষম্যমূলক/অশালীন (Sexist)",
-                "threat": "হুমকি (Threat)",
-                "bullying": "সাইবারবুলিং (Bullying)",
-                "toxic": "বিষাক্ত/ক্ষতিকর (Toxic)"
-            }
-            
-            for lbl in LABELS:
-                prob = result["probabilities"][lbl]
-                pct = prob * 100.0
-                th = float(active_thresholds.get(lbl, 0.5))
-                is_detected = prob >= th
-                status = "শনাক্ত (Detected)" if is_detected else "নিরাপদ (Normal)"
-                rows.append({
-                    "লেবেল (Label)": label_bn_map.get(lbl, lbl),
-                    "শতাংশ (Percentage)": f"{pct:.1f}%",
-                    "প্রবাবিলিটি (Probability)": round(prob, 4),
-                    "কাট-অফ (Threshold)": f"{th*100:.0f}%",
-                    "Confidence Meter": prob,
-                    "স্ট্যাটাস (Status)": status
-                })
+                results = {}
+                with st.spinner("Running inference across all ready models..."):
+                    for mid in available_models.keys():
+                        th_d = load_thresholds(mid)
+                        try:
+                            results[mid] = run_single_inference(mid, text, th_d)
+                        except Exception as e:
+                            st.warning(f"Error executing {mid}: {e}")
                 
-            df_display = pd.DataFrame(rows)
-            
-            # Display rich table with progress bars
-            st.dataframe(
-                df_display,
-                column_config={
-                    "Confidence Meter": st.column_config.ProgressColumn(
-                        "কনফিডেন্স মিটার (%)",
-                        help="লেবেলের সম্ভাব্যতা শতকরা হিসেবে",
-                        format="%.1f",
-                        min_value=0.0,
-                        max_value=1.0,
-                    ),
-                    "শতাংশ (Percentage)": st.column_config.TextColumn(
-                        "শতাংশ (%)",
-                        width="small"
-                    ),
-                    "প্রবাবিলিটি (Probability)": st.column_config.NumberColumn(
-                        "প্রবাবিলিটি (0 - 1)",
-                        format="%.4f",
-                        width="small"
-                    ),
-                    "কাট-অফ (Threshold)": st.column_config.TextColumn(
-                        "কাট-অফ",
-                        width="small"
-                    ),
-                    "স্ট্যাটাস (Status)": st.column_config.TextColumn(
-                        "স্ট্যাটাস",
-                        width="medium"
-                    ),
-                },
-                hide_index=True,
-                width="stretch"
-            )
-            
-            # Token inspection accordion
-            with st.expander("প্রি-প্রসেসড টোকেনসমূহ (Inspected Tokens)"):
-                st.caption("মডেলের ক্লিনিং ও স্টপওয়ার্ড রিমুভালের পর শব্দগুলোর রূপ:")
-                tokens = result["tokens"]
-                if tokens:
-                    st.write(" | ".join([f"`{t}`" for t in tokens]))
+                # Consensus calculation
+                total_evaluated = len(results)
+                toxic_votes = sum(1 for r in results.values() if not r["is_neutral"])
+                neutral_votes = total_evaluated - toxic_votes
+                
+                # --- Consensus Banner ---
+                st.markdown("### 🏆 Model Consensus & Agreement")
+                if toxic_votes == total_evaluated:
+                    st.error(f"🚨 **Unanimous Toxic Agreement ({total_evaluated}/{total_evaluated} Models Agree):** The input is classified as harmful/toxic.")
+                elif neutral_votes == total_evaluated:
+                    st.success(f"✅ **Unanimous Clean Agreement ({total_evaluated}/{total_evaluated} Models Agree):** The input is classified as safe and neutral.")
                 else:
-                    st.write("*(কোনো তাৎপর্যপূর্ণ টোকেন পাওয়া যায়নি)*")
-
-            # --- NLP Lab 2: Shannon's Guard & Pre-Moderation Auto-Complete ---
-            with st.expander("🔮 শ্যানন অটো-কমপ্লিশন ও প্রি-মডারেশন গার্ড (NLP Lab 2 - Shannon's Guard)", expanded=True):
-                st.caption("ল্যাব ২-এর N-Gram Language Modeling ও Shannon's Predictor ব্যবহার করে পরবর্তী শব্দের বিশ্লেষণ ও সম্ভাব্য ক্ষতিকর শব্দের পূর্বাভাস:")
-                try:
-                    from src.shannon_guard import train_or_load_shannon_guard, toxic_autocomplete_guard, generate_text
-                    shannon_model = train_or_load_shannon_guard(n=2)
-                    guard_res = toxic_autocomplete_guard(text, shannon_model, n=2, top_k=5)
-                    
-                    if guard_res["is_warning"]:
-                        st.warning(guard_res["warning_message"])
-                    else:
-                        st.info("ℹ️ এই কনটেক্সটে পরবর্তী শব্দের মধ্যে কোনো তাৎক্ষণিক ক্ষতিকর শব্দ পাওয়া যায়নি।")
-                    
-                    preds = guard_res["predictions"]
-                    if preds:
-                        st.markdown("**পরবর্তী সম্ভাব্য শব্দ ও সম্ভাব্যতা (Shannon's Next-Word Probabilities):**")
-                        cols = st.columns(min(len(preds), 5))
-                        risky_set = {w for w, _ in guard_res.get("risky_words", [])}
-                        for idx, (pw, pp) in enumerate(preds[:5]):
-                            with cols[idx]:
-                                is_danger = pw in risky_set
-                                bg = "#FEE2E2" if is_danger else "#F1F5F9"
-                                fg = "#991B1B" if is_danger else "#1E293B"
-                                border = "1px solid #F87171" if is_danger else "1px solid #CBD5E1"
-                                badge_html = f"<div style='background-color: {bg}; color: {fg}; border: {border}; padding: 6px 10px; border-radius: 6px; text-align: center; font-weight: 600; font-size: 0.95rem;'>{pw}<br><span style='font-size: 0.75rem; font-weight: 400;'>{pp*100:.1f}%</span></div>"
-                                st.markdown(badge_html, unsafe_allow_html=True)
-                    else:
-                        st.caption("*(এই শব্দের পর সরাসরি কোনো N-gram হিস্ট্রি রেকর্ড পাওয়া যায়নি)*")
+                    st.warning(f"⚖️ **Split Verdict ({toxic_votes}/{total_evaluated} Models Flagged Toxic):** Differing classification thresholds among models.")
+                
+                # --- Side-by-Side Model Cards with EQUAL HEIGHTS ---
+                st.markdown("### 📊 Side-by-Side Model Verdicts")
+                model_cols = st.columns(total_evaluated)
+                for idx, (mid, res) in enumerate(results.items()):
+                    with model_cols[idx]:
+                        m_meta = ALL_MODELS.get(mid, {})
                         
-                    sim_continuation = generate_text(shannon_model, text, max_words=5, n=2)
-                    st.markdown(f"**🎲 শ্যানন টেক্সট জেনারেশন সিমুলেশন (Simulated Continuation):** `{sim_continuation}`")
-                except Exception as ex:
-                    st.error(f"শ্যানন গার্ড লোড করতে ত্রুটি: {ex}")
+                        # Build detected label pills HTML
+                        if res["detected"]:
+                            badges_html = " ".join([f"<span class='label-pill'>{label_badge_map.get(l, l.upper())}</span>" for l in res["detected"]])
+                        else:
+                            badges_html = "<span class='label-pill-none'>None (Safe / Normal)</span>"
+                            
+                        # Verdict class and text
+                        if res["is_neutral"]:
+                            verdict_class = "card-verdict-safe"
+                            verdict_html = "✅ Safe (Clean / Neutral)"
+                        else:
+                            verdict_class = "card-verdict-toxic"
+                            verdict_html = "🚨 Toxic (Harmful Content)"
+                            
+                        # Build top 3 probability bars
+                        top_sorted = sorted(res["probs"].items(), key=lambda x: x[1], reverse=True)[:3]
+                        prob_rows_html = []
+                        for lbl, p in top_sorted:
+                            pct = p * 100.0
+                            bar_color = "#EF4444" if p >= 0.5 else "#3B82F6"
+                            disp_name = label_short_map.get(lbl, lbl)
+                            prob_rows_html.append(
+                                f'<div class="prob-row">'
+                                f'<span style="font-weight: 500; color: #334155;">{disp_name}:</span>'
+                                f'<div class="prob-bar-container">'
+                                f'<div class="prob-bar-fill" style="width: {pct:.1f}%; background-color: {bar_color};"></div>'
+                                f'</div>'
+                                f'<span style="font-weight: 600; color: #0F172A; width: 45px; text-align: right;">{pct:.1f}%</span>'
+                                f'</div>'
+                            )
+                        probs_html = "".join(prob_rows_html)
+
+                        # Render complete unified card with standardized sections (unindented to prevent markdown code block)
+                        card_html = (
+                            f'<div class="unified-model-card">'
+                            f'<div class="card-header-section">'
+                            f'<div class="card-title">{m_meta.get("name", mid)}</div>'
+                            f'<span class="card-badge">{m_meta.get("type", "Model")}</span>'
+                            f'</div>'
+                            f'<div class="card-verdict-section {verdict_class}">{verdict_html}</div>'
+                            f'<div class="card-labels-section">'
+                            f'<div class="card-labels-title">Detected Labels:</div>'
+                            f'<div class="card-labels-badges">{badges_html}</div>'
+                            f'</div>'
+                            f'<div class="card-latency-section">⏱️ Inference Latency: <b>{res["latency_ms"]:.2f} ms</b></div>'
+                            f'<div class="card-probs-section">'
+                            f'<div class="card-probs-title">Top Predicted Confidences:</div>'
+                            f'{probs_html}'
+                            f'</div>'
+                            f'</div>'
+                        )
+                        st.markdown(card_html, unsafe_allow_html=True)
+                
+                # --- Unified Probability Matrix Table ---
+                st.markdown("### 📈 Unified Multi-Model Probability Matrix")
+                st.caption("Side-by-side comparison of predicted confidence probabilities (%) for all 5 canonical toxicity labels:")
+                
+                table_rows = []
+                for lbl in LABELS:
+                    row_data = {"Toxicity Label": label_display_map.get(lbl, lbl)}
+                    model_probs = []
+                    any_detected = False
+                    for mid in results.keys():
+                        prob = results[mid]["probs"][lbl]
+                        model_probs.append(prob)
+                        th = float(load_thresholds(mid).get(lbl, 0.5))
+                        is_flagged = prob >= th
+                        if is_flagged:
+                            any_detected = True
+                        flag_icon = "🚨 " if is_flagged else ""
+                        row_data[ALL_MODELS[mid]["name"].split("(")[0].strip()] = f"{flag_icon}{prob*100:.1f}%"
+                    
+                    avg_prob = np.mean(model_probs) if model_probs else 0.0
+                    row_data["Ensemble Avg (%)"] = f"{avg_prob*100:.1f}%"
+                    row_data["Consensus Status"] = "🚨 DETECTED" if any_detected else "✅ Clean"
+                    table_rows.append(row_data)
+                    
+                df_matrix = pd.DataFrame(table_rows)
+                st.dataframe(df_matrix, hide_index=True, width="stretch")
+        
+        # =========================================================================
+        # 2. SINGLE MODEL DEEP-DIVE VIEW
+        # =========================================================================
+        else:
+            try:
+                single_res = run_single_inference(single_model_name, text, active_single_th)
+                st.markdown(f"### 🔬 Detailed Analysis: {ALL_MODELS[single_model_name]['name']}")
+                
+                if single_res["is_neutral"]:
+                    st.success("✅ **Clean & Safe (Neutral)** — No toxicity thresholds exceeded.")
+                else:
+                    detected_badges = " ".join([f"`{label_badge_map.get(lbl, lbl.upper())}`" for lbl in single_res["detected"]])
+                    st.error(f"🚨 **Harmful Content Detected:** {detected_badges}")
+                
+                rows = []
+                for lbl in LABELS:
+                    prob = single_res["probs"][lbl]
+                    th = float(active_single_th.get(lbl, 0.5))
+                    is_det = prob >= th
+                    rows.append({
+                        "Label": label_display_map.get(lbl, lbl),
+                        "Percentage (%)": f"{prob*100:.1f}%",
+                        "Probability (0-1)": round(prob, 4),
+                        "Cutoff Threshold": f"{th*100:.0f}%",
+                        "Confidence Meter": prob,
+                        "Status": "🚨 DETECTED" if is_det else "✅ Clean"
+                    })
+                st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+            except Exception as ex:
+                st.error(f"Error executing {single_model_name}: {ex}")
+
+        # =========================================================================
+        # 3. COMMON PREPROCESSED TOKENS INSPECTION
+        # =========================================================================
+        with st.expander("🔎 Inspected Preprocessed Tokens"):
+            st.caption("Tokens after Unicode NFKC normalization, regex cleaning, and dialect mapping:")
+            tokens = preprocess(text)
+            if tokens:
+                st.write(" | ".join([f"`{t}`" for t in tokens]))
+            else:
+                st.write("*(No significant tokens found)*")
+
+

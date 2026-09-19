@@ -15,10 +15,9 @@ This project is built around **fundamental Natural Language Processing algorithm
 3. **Word2Vec + Logistic Regression** (`word2vec_lr.py`): Skip-gram with Negative Sampling (SGNS) trained directly on the corpus with mean embedding pooling.
 4. **Bidirectional LSTM** (`bilstm.py`): PyTorch BiLSTM with custom vocabulary and trainable word embeddings learned from scratch.
 5. **Transformer Encoder** (`transformer.py`): PyTorch multi-head self-attention encoder with sinusoidal positional encoding learned completely from scratch (no pretrained weights).
-6. **Shannon N-Gram Guard & Pre-Moderation LM** (`shannon_guard.py`): Probabilistic N-gram language model & Claude Shannon predictor (NLP Lab 2) for next-word forecasting and real-time toxic auto-complete warnings.
 
 ### External Pretrained Benchmark
-7. **BanglaBERT** (`banglabert.py`): Pretrained Bengali ELECTRA model (`csebuetnlp/banglabert`).
+6. **BanglaBERT** (`banglabert.py`): Pretrained Bengali ELECTRA model (`csebuetnlp/banglabert`).
    - **Crucial Boundary**: BanglaBERT is strictly quarantined as an **External Pretrained Benchmark** to contextualize performance against state-of-the-art foundation models. It is **NOT** part of the submission from-scratch model family.
 
 ---

@@ -31,12 +31,3 @@ for model_name in ['naive_bayes', 'tfidf_lr']:
             status = 'DETECTED' if p >= th else 'ok'
             print(f"  {lbl:12s}: {p*100:6.2f}% (cutoff {th*100:4.1f}%) [{status}]")
 
-print("\n================ PRE-MODERATION: SHANNON GUARD (NLP LAB 2) ================")
-from src.shannon_guard import train_or_load_shannon_guard, toxic_autocomplete_guard
-shannon_m = train_or_load_shannon_guard(n=2)
-for text, exp in test_cases[:3]:
-    res = toxic_autocomplete_guard(text, shannon_m, n=2, top_k=3)
-    top_candidates = ", ".join([f"{w} ({p*100:.1f}%)" for w, p in res["predictions"]]) or "None"
-    print(f"\nText: \"{text}\"")
-    print(f"Shannon Next Words: {top_candidates}")
-    print(f"Pre-moderation Alert: {'🚨 ' + res['warning_message'] if res['is_warning'] else '✅ Safe'}")
