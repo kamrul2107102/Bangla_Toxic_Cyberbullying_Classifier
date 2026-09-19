@@ -269,3 +269,37 @@ if classify_clicked or text.strip():
                     st.write(" | ".join([f"`{t}`" for t in tokens]))
                 else:
                     st.write("*(কোনো তাৎপর্যপূর্ণ টোকেন পাওয়া যায়নি)*")
+
+            # --- NLP Lab 2: Shannon's Guard & Pre-Moderation Auto-Complete ---
+            with st.expander("🔮 শ্যানন অটো-কমপ্লিশন ও প্রি-মডারেশন গার্ড (NLP Lab 2 - Shannon's Guard)", expanded=True):
+                st.caption("ল্যাব ২-এর N-Gram Language Modeling ও Shannon's Predictor ব্যবহার করে পরবর্তী শব্দের বিশ্লেষণ ও সম্ভাব্য ক্ষতিকর শব্দের পূর্বাভাস:")
+                try:
+                    from src.shannon_guard import train_or_load_shannon_guard, toxic_autocomplete_guard, generate_text
+                    shannon_model = train_or_load_shannon_guard(n=2)
+                    guard_res = toxic_autocomplete_guard(text, shannon_model, n=2, top_k=5)
+                    
+                    if guard_res["is_warning"]:
+                        st.warning(guard_res["warning_message"])
+                    else:
+                        st.info("ℹ️ এই কনটেক্সটে পরবর্তী শব্দের মধ্যে কোনো তাৎক্ষণিক ক্ষতিকর শব্দ পাওয়া যায়নি।")
+                    
+                    preds = guard_res["predictions"]
+                    if preds:
+                        st.markdown("**পরবর্তী সম্ভাব্য শব্দ ও সম্ভাব্যতা (Shannon's Next-Word Probabilities):**")
+                        cols = st.columns(min(len(preds), 5))
+                        risky_set = {w for w, _ in guard_res.get("risky_words", [])}
+                        for idx, (pw, pp) in enumerate(preds[:5]):
+                            with cols[idx]:
+                                is_danger = pw in risky_set
+                                bg = "#FEE2E2" if is_danger else "#F1F5F9"
+                                fg = "#991B1B" if is_danger else "#1E293B"
+                                border = "1px solid #F87171" if is_danger else "1px solid #CBD5E1"
+                                badge_html = f"<div style='background-color: {bg}; color: {fg}; border: {border}; padding: 6px 10px; border-radius: 6px; text-align: center; font-weight: 600; font-size: 0.95rem;'>{pw}<br><span style='font-size: 0.75rem; font-weight: 400;'>{pp*100:.1f}%</span></div>"
+                                st.markdown(badge_html, unsafe_allow_html=True)
+                    else:
+                        st.caption("*(এই শব্দের পর সরাসরি কোনো N-gram হিস্ট্রি রেকর্ড পাওয়া যায়নি)*")
+                        
+                    sim_continuation = generate_text(shannon_model, text, max_words=5, n=2)
+                    st.markdown(f"**🎲 শ্যানন টেক্সট জেনারেশন সিমুলেশন (Simulated Continuation):** `{sim_continuation}`")
+                except Exception as ex:
+                    st.error(f"শ্যানন গার্ড লোড করতে ত্রুটি: {ex}")
