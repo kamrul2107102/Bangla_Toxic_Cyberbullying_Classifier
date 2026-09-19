@@ -41,7 +41,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-header">🛡️ Bangla Toxic Comment & Cyberbullying Classifier</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">Bangla Toxic Comment & Cyberbullying Classifier</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-caption">বাংলা ও বাংলিশ (Banglish) ক্ষতিকর মন্তব্য, হুমকি ও সাইবারবুলিং শনাক্তকরণ সিস্টেম</div>', unsafe_allow_html=True)
 
 # Define all supported models with friendly labels
@@ -55,7 +55,7 @@ ALL_MODELS = {
 }
 
 with st.sidebar:
-    st.header("⚙️ মডেল সেটিংস (Settings)")
+    st.header("মডেল সেটিংস (Settings)")
     
     selected_label = st.selectbox(
         "মডেল নির্বাচন করুন (Choose model):",
@@ -68,7 +68,7 @@ with st.sidebar:
     # Notice for BanglaBERT
     if model_name == "banglabert":
         st.markdown(
-            '<div class="benchmark-notice">ℹ️ <b>BanglaBERT</b> is an external pretrained benchmark (ELECTRA) and is not part of the from-scratch model pipeline.</div>',
+            '<div class="benchmark-notice"><b>BanglaBERT</b> is an external pretrained benchmark (ELECTRA) and is not part of the from-scratch model pipeline.</div>',
             unsafe_allow_html=True
         )
 
@@ -88,17 +88,17 @@ with st.sidebar:
 
     threshold_mode = st.radio(
         "থ্রেশহোল্ড মোড (Threshold Mode):",
-        ["🎯 মডেলের অপ্টিমাইজড থ্রেশহোল্ড (Recommended)", "🎚️ কাস্টম থ্রেশহোল্ড স্লাইডার"]
+        ["মডেলের অপ্টিমাইজড থ্রেশহোল্ড (Recommended)", "কাস্টম থ্রেশহোল্ড স্লাইডার"]
     )
     
-    if threshold_mode == "🎚️ কাস্টম থ্রেশহোল্ড স্লাইডার":
+    if threshold_mode == "কাস্টম থ্রেশহোল্ড স্লাইডার":
         custom_th = float(st.slider("লেবেল থ্রেশহোল্ড (Detection Threshold):", 0.05, 0.95, 0.50, 0.05))
         active_thresholds = {lbl: custom_th for lbl in LABELS}
     else:
         active_thresholds = best_thresholds
 
     st.markdown("---")
-    st.subheader("📊 মডেল পারফরম্যান্স")
+    st.subheader("মডেল পারফরম্যান্স")
     if report:
         col_m1, col_m2 = st.columns(2)
         with col_m1:
@@ -106,26 +106,26 @@ with st.sidebar:
         with col_m2:
             st.metric("Test Macro-F1", f"{report.get('test', {}).get('macro_f1', 0.0):.3f}")
         
-        with st.expander("🔍 বর্তমান সক্রিয় থ্রেশহোল্ড"):
+        with st.expander("বর্তমান সক্রিয় থ্রেশহোল্ড"):
             for lbl, th in active_thresholds.items():
                 st.write(f"• **{lbl}**: `{th:.2f}` ({th*100:.0f}%)")
     else:
-        st.info(f"ℹ️ {model_name} মডেলের প্রি-ট্রেইন্ড মেট্রিক্স পাওয়া যায়নি।")
+        st.info(f"{model_name} মডেলের প্রি-ট্রেইন্ড মেট্রিক্স পাওয়া যায়নি।")
 
     st.markdown("---")
     st.caption("NLP Multi-Label Toxic Classifier • From-Scratch Classical to Neural")
 
 # Example Sentences for Quick Testing
 SAMPLE_SENTENCES = {
-    "✨ পছন্দ করুন (Select an example)": "",
-    "🔴 [হুমকি/Threat] তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব": "তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব",
-    "🟢 [সাধারণ প্রশ্ন] এই বইটা কোথায় কিনতে পাওয়া যাবে?": "এই বইটা কোথায় কিনতে পাওয়া যাবে?",
-    "🟢 [পজিটিভ/নিউট্রাল] আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।": "আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।",
-    "🟢 [প্রশংসা] ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!": "ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!",
-    "🔴 [বুলিং/অশালীন] তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু": "তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু",
-    "🔴 [বিদ্বেষ/Hate Speech] এই ফকিন্নি মালাউনদের দেশ থেকে লাথি মেরে তাড়ানো উচিত": "এই ফকিন্নি মালাউনদের দেশ থেকে লাথি মেরে তাড়ানো উচিত",
-    "🟡 [বাংলিশ পজিটিভ] video ta onek sundor hoyeche bro, shuvokamona roilo": "video ta onek sundor hoyeche bro, shuvokamona roilo",
-    "🔴 [বাংলিশ ক্ষতিকর] tui ekta baje faltu manush, tore dekhle shobai ghenna kore": "tui ekta baje faltu manush, tore dekhle shobai ghenna kore"
+    "পছন্দ করুন (Select an example)": "",
+    "হুমকি/Threat] তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব": "তোরে যেখানে পামু মাইরা তক্তা বানায়া ফেলমু, জানে শেষ করে দেব",
+    "[সাধারণ প্রশ্ন] এই বইটা কোথায় কিনতে পাওয়া যাবে?": "এই বইটা কোথায় কিনতে পাওয়া যাবে?",
+    "[পজিটিভ/নিউট্রাল] আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।": "আজকের আবহাওয়াটা অনেক সুন্দর এবং চমৎকার।",
+    "[প্রশংসা] ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!": "ভাই আপনার কাজটি সত্যিই অনেক তথ্যবহুল ও দারুণ ছিল!",
+    "[বুলিং/অশালীন] তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু": "তুই একটা আস্ত কুত্তার বাচ্চা তোরে জুতা মারমু",
+    "[বিদ্বেষ/Hate Speech] এই ফকিন্নি মালাউনদের দেশ থেকে লাথি মেরে তাড়ানো উচিত": "এই ফকিন্নি মালাউনদের দেশ থেকে লাথি মেরে তাড়ানো উচিত",
+    "[বাংলিশ পজিটিভ] video ta onek sundor hoyeche bro, shuvokamona roilo": "video ta onek sundor hoyeche bro, shuvokamona roilo",
+    "[বাংলিশ ক্ষতিকর] tui ekta baje faltu manush, tore dekhle shobai ghenna kore": "tui ekta baje faltu manush, tore dekhle shobai ghenna kore"
 }
 
 if "user_comment" not in st.session_state:
@@ -136,7 +136,7 @@ def on_sample_change():
     if chosen and SAMPLE_SENTENCES.get(chosen):
         st.session_state.user_comment = SAMPLE_SENTENCES[chosen]
 
-st.markdown("##### 🧪 টেস্ট করার জন্য নমুনা বাক্য (Sample Test Sentences):")
+st.markdown("#####টেস্ট করার জন্য নমুনা বাক্য (Sample Test Sentences):")
 st.selectbox(
     "ক্লিক করে উদাহরণ সিলেক্ট করুন:",
     options=list(SAMPLE_SENTENCES.keys()),
@@ -156,7 +156,7 @@ text = st.text_area(
 
 col_btn, col_info = st.columns([1, 3])
 with col_btn:
-    classify_clicked = st.button("🔍 Classify Text", type="primary", width="stretch")
+    classify_clicked = st.button("Classify Text", type="primary", width="stretch")
 
 def classify_comment(model, comment_text: str, thresholds_dict: dict):
     probs = np.asarray(model.predict_proba([comment_text]))[0]
@@ -174,12 +174,12 @@ def classify_comment(model, comment_text: str, thresholds_dict: dict):
 
 if classify_clicked or text.strip():
     if not text.strip():
-        st.warning("⚠️ অনুগ্রহ করে কোনো টেক্সট বা কমেন্ট লিখুন।")
+        st.warning("অনুগ্রহ করে কোনো টেক্সট বা কমেন্ট লিখুন।")
     else:
         try:
             model = load_model(model_name)
         except Exception as e:
-            st.error(f"⚠️ নির্বাচিত মডেল '{model_name}' এর সংরক্ষিত আর্টিফ্যাক্ট পাওয়া যায়নি।")
+            st.error(f"নির্বাচিত মডেল '{model_name}' লোড করতে সমস্যা হয়েছে: {e}")
             nb_name = "notebooks/train_banglabert_benchmark_colab.ipynb" if model_name == "banglabert" else f"notebooks/train_{model_name}_colab.ipynb"
             st.info(
                 f"আপনি এটি লোকাল টার্মিনাল বা Google Colab-এ ট্রেন করতে পারেন:\n\n"
@@ -195,12 +195,12 @@ if classify_clicked or text.strip():
             
             # Overall Verdict Banner
             if result["neutral"]:
-                st.success("✅ **নিরাপদ ও নিউট্রাল মন্তব্য (Neutral / Safe)** — কোনো ক্ষতিকর লেবেল থ্রেশহোল্ড অতিক্রম করেনি।")
+                st.success("**নিরাপদ ও নিউট্রাল মন্তব্য (Neutral / Safe)** — কোনো ক্ষতিকর লেবেল থ্রেশহোল্ড অতিক্রম করেনি।")
             else:
                 detected_badges = " ".join([f"`{lbl.upper()}`" for lbl in result["labels"]])
-                st.error(f"🚨 **ক্ষতিকর উপাদান শনাক্ত হয়েছে (Toxic Detected):** {detected_badges}")
+                st.error(f" **ক্ষতিকর উপাদান শনাক্ত হয়েছে (Toxic Detected):** {detected_badges}")
             
-            st.markdown("### 📊 প্রতিটি লেবেলের সম্ভাবনা (Label Probabilities & Percentages)")
+            st.markdown("### প্রতিটি লেবেলের সম্ভাবনা (Label Probabilities & Percentages)")
             
             rows = []
             label_bn_map = {
@@ -216,7 +216,7 @@ if classify_clicked or text.strip():
                 pct = prob * 100.0
                 th = float(active_thresholds.get(lbl, 0.5))
                 is_detected = prob >= th
-                status = "🚨 শনাক্ত (Detected)" if is_detected else "✅ নিরাপদ (Normal)"
+                status = "শনাক্ত (Detected)" if is_detected else "নিরাপদ (Normal)"
                 rows.append({
                     "লেবেল (Label)": label_bn_map.get(lbl, lbl),
                     "শতাংশ (Percentage)": f"{pct:.1f}%",
@@ -262,7 +262,7 @@ if classify_clicked or text.strip():
             )
             
             # Token inspection accordion
-            with st.expander("🔎 প্রি-প্রসেসড টোকেনসমূহ (Inspected Tokens)"):
+            with st.expander("প্রি-প্রসেসড টোকেনসমূহ (Inspected Tokens)"):
                 st.caption("মডেলের ক্লিনিং ও স্টপওয়ার্ড রিমুভালের পর শব্দগুলোর রূপ:")
                 tokens = result["tokens"]
                 if tokens:

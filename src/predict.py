@@ -15,8 +15,37 @@ def load_model(model_name: str):
     joblib_path = ARTIFACT_DIR / f"{model_name}.joblib"
     model_dir = ARTIFACT_DIR / model_name
 
-    if joblib_path.exists():
-        model = joblib.load(joblib_path)
+    # Neural and benchmark models are best loaded from their structured artifact directory
+    if model_dir.is_dir() and model_name in ["banglabert", "bilstm", "transformer"]:
+        if model_name == "bilstm":
+            from .models.bilstm import BiLSTMModel
+            model = BiLSTMModel.load(model_dir)
+        elif model_name == "transformer":
+            from .models.transformer import ScratchTransformerModel
+            model = ScratchTransformerModel.load(model_dir)
+        elif model_name == "banglabert":
+            from .models.banglabert import BanglaBERTBenchmarkModel
+            model = BanglaBERTBenchmarkModel.load(model_dir)
+        else:
+            raise FileNotFoundError(f"Unknown model directory format for {model_name}")
+    elif joblib_path.exists():
+        try:
+            model = joblib.load(joblib_path)
+        except Exception as e:
+            if model_dir.is_dir():
+                if model_name == "banglabert":
+                    from .models.banglabert import BanglaBERTBenchmarkModel
+                    model = BanglaBERTBenchmarkModel.load(model_dir)
+                elif model_name == "bilstm":
+                    from .models.bilstm import BiLSTMModel
+                    model = BiLSTMModel.load(model_dir)
+                elif model_name == "transformer":
+                    from .models.transformer import ScratchTransformerModel
+                    model = ScratchTransformerModel.load(model_dir)
+                else:
+                    raise e
+            else:
+                raise e
     elif model_dir.is_dir():
         if model_name == "bilstm":
             from .models.bilstm import BiLSTMModel
